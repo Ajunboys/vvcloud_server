@@ -1,0 +1,14 @@
+[
+{
+"version":"4.0.0.1",
+"name":"跨屏云办公",
+"descriptions":["1，整合跨屏文件系统；","2，APP自动下载;"],
+"path":"https://itunes.apple.com/cn/app/virwork-app/id516447913?mt=8"
+},
+{
+"version":"4.0.0.0",
+"name":"跨屏云办公",
+"descriptions":["1，跨屏文件系统；"],
+"path":"https://itunes.apple.com/cn/app/virwork-app/id516447913?mt=8"
+}
+]

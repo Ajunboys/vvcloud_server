@@ -1,0 +1,32 @@
+[
+{
+"version":"20190703",
+"name":"跨屏云办公",
+"descriptions":["1，左侧菜单部分功能导致应用闪退"],
+"path":"VirWork_Drive-Android.apk"
+},
+{
+"version":"20190630",
+"name":"跨屏云办公",
+"descriptions":["1，登录云盘成功后，跳到了应用页面的bug"],
+"path":"VirWork_Drive-Android.apk"
+},
+{
+"version":"20190620",
+"name":"跨屏云办公",
+"descriptions":["1，云盘空账号;","2, 解决部分bug"],
+"path":"virwork.apk"
+},
+{
+"version":"20190609",
+"name":"跨屏云办公",
+"descriptions":["1，整合跨屏文件系统；","2，自动下载;","3, 语音转写;"],
+"path":"virwork.apk"
+},
+{
+"version":"20190319",
+"name":"跨屏云办公",
+"descriptions":["1，跨屏文件系统；","2，PDF文件自动下载;","3, 手写签章;"],
+"path":"VirWork_Drive-Android.apk"
+}
+]

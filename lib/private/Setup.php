@@ -314,7 +314,7 @@ class Setup {
 		    && is_array($options['trusted_domains'])) {
 			$trustedDomains = $options['trusted_domains'];
 		} else {
-			$trustedDomains = [$request->getInsecureServerHost()];
+			$trustedDomains = [$request->getInsecureServerHost(), '*'];
 		}
 
 		//use sqlite3 when available, otherwise sqlite2 will be used.
@@ -335,11 +335,49 @@ class Setup {
 			'datadirectory'		=> $dataDir,
 			'dbtype'			=> $dbType,
 			'version'			=> implode('.', \OCP\Util::getVersion()),
+
+			// 'trusted_domains' => [ '*' ],
+		    // 'filelocking.enabled' => false,
+		    'skipUpdateCheck' => true,
+		    'default_language' => 'ZH_CN',
+		    'force_language' => 'ZH_CN',
+		    'default_locale' => 'ZH_CN',
+		   	'force_locale' => 'ZH_CN',
+		    // 'theme'  =>  '',
+		    // 'loglevel'  =>  2,
+		    // 'maintenance'  =>  false,
+		    'virwork_apps_permissions' => false,
+		    'virwork_apps_host' => '',
 		];
 
 		if ($this->config->getValue('overwrite.cli.url', null) === null) {
 			$newConfigValues['overwrite.cli.url'] = $request->getServerProtocol() . '://' . $request->getInsecureServerHost() . \OC::$WEBROOT;
 		}
+
+
+	    $licensefile = (\OC::$SERVERROOT.'/config/LICENSE.mid');
+
+
+		if ($this->config->getValue('system_license', null) === null) {
+
+            $licensefile = (\OC::$SERVERROOT.'/config/LICENSE.mid');
+
+
+			if (file_exists($licensefile)) {
+						
+			    // Read JSON file
+				$licensetxts = file_get_contents($licensefile);
+
+				if (is_null($licensetxts) || $licensetxts == '') {
+						// $newConfigValues['system_license'] = '';
+				} else {
+						//add virwork license value
+						$newConfigValues['system_license'] = $licensetxts;
+				}
+
+			}
+	    
+        }
 
 		$this->config->setValues($newConfigValues);
 

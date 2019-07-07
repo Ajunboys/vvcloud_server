@@ -60,27 +60,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
  */
-
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\ILogger;
 use OCP\IUser;
 use OC\AppFramework\Http\Request;
-
 class OC_Util {
 	public static $scripts = array();
 	public static $styles = array();
 	public static $headers = array();
 	private static $rootMounted = false;
 	private static $fsSetup = false;
-
 	/** @var array Local cache of version.php */
 	private static $versionCache = null;
-
 	protected static function getAppManager() {
 		return \OC::$server->getAppManager();
 	}
-
 	private static function initLocalStorageRootFS() {
 		// mount local file backend as root
 		$configDataDirectory = \OC::$server->getSystemConfig()->getValue("datadirectory", OC::$SERVERROOT . "/data");
@@ -91,7 +86,6 @@ class OC_Util {
 			self::$rootMounted = true;
 		}
 	}
-
 	/**
 	 * mounting an object storage as the root fs will in essence remove the
 	 * necessity of a data folder being present.
@@ -108,7 +102,6 @@ class OC_Util {
 		if (!isset($config['arguments'])) {
 			$config['arguments'] = array();
 		}
-
 		// instantiate object store implementation
 		$name = $config['class'];
 		if (strpos($name, 'OCA\\') === 0 && substr_count($name, '\\') >= 2) {
@@ -118,7 +111,6 @@ class OC_Util {
 		$config['arguments']['objectstore'] = new $config['class']($config['arguments']);
 		// mount with plain / root object store implementation
 		$config['class'] = '\OC\Files\ObjectStore\ObjectStoreStorage';
-
 		// mount object storage as root
 		\OC\Files\Filesystem::initMountManager();
 		if (!self::$rootMounted) {
@@ -126,7 +118,6 @@ class OC_Util {
 			self::$rootMounted = true;
 		}
 	}
-
 	/**
 	 * mounting an object storage as the root fs will in essence remove the
 	 * necessity of a data folder being present.
@@ -142,24 +133,20 @@ class OC_Util {
 		if (!isset($config['arguments'])) {
 			$config['arguments'] = array();
 		}
-
 		// instantiate object store implementation
 		$name = $config['class'];
 		if (strpos($name, 'OCA\\') === 0 && substr_count($name, '\\') >= 2) {
 			$segments = explode('\\', $name);
 			OC_App::loadApp(strtolower($segments[1]));
 		}
-
 		if (!isset($config['arguments']['bucket'])) {
 			$config['arguments']['bucket'] = '';
 		}
 		// put the root FS always in first bucket for multibucket configuration
 		$config['arguments']['bucket'] .= '0';
-
 		$config['arguments']['objectstore'] = new $config['class']($config['arguments']);
 		// mount with plain / root object store implementation
 		$config['class'] = '\OC\Files\ObjectStore\ObjectStoreStorage';
-
 		// mount object storage as root
 		\OC\Files\Filesystem::initMountManager();
 		if (!self::$rootMounted) {
@@ -167,7 +154,6 @@ class OC_Util {
 			self::$rootMounted = true;
 		}
 	}
-
 	/**
 	 * Can be set up
 	 *
@@ -182,28 +168,22 @@ class OC_Util {
 		if (self::$fsSetup) {
 			return false;
 		}
-
 		\OC::$server->getEventLogger()->start('setup_fs', 'Setup filesystem');
-
 		// If we are not forced to load a specific user we load the one that is logged in
 		if ($user === null) {
 			$user = '';
 		} else if ($user == "" && \OC::$server->getUserSession()->isLoggedIn()) {
 			$user = OC_User::getUser();
 		}
-
 		// load all filesystem apps before, so no setup-hook gets lost
 		OC_App::loadApps(array('filesystem'));
-
 		// the filesystem will finish when $user is not empty,
 		// mark fs setup here to avoid doing the setup from loading
 		// OC_Filesystem
 		if ($user != '') {
 			self::$fsSetup = true;
 		}
-
 		\OC\Files\Filesystem::initMountManager();
-
 		$prevLogging = \OC\Files\Filesystem::logWarningWhenAddingStorageWrapper(false);
 		\OC\Files\Filesystem::addStorageWrapper('mount_options', function ($mountPoint, \OCP\Files\Storage $storage, \OCP\Files\Mount\IMountPoint $mount) {
 			if ($storage->instanceOfStorage('\OC\Files\Storage\Common')) {
@@ -212,7 +192,6 @@ class OC_Util {
 			}
 			return $storage;
 		});
-
 		\OC\Files\Filesystem::addStorageWrapper('enable_sharing', function ($mountPoint, \OCP\Files\Storage\IStorage $storage, \OCP\Files\Mount\IMountPoint $mount) {
 			if (!$mount->getOption('enable_sharing', true)) {
 				return new \OC\Files\Storage\Wrapper\PermissionsMask([
@@ -222,7 +201,6 @@ class OC_Util {
 			}
 			return $storage;
 		});
-
 		// install storage availability wrapper, before most other wrappers
 		\OC\Files\Filesystem::addStorageWrapper('oc_availability', function ($mountPoint, \OCP\Files\Storage\IStorage $storage) {
 			if (!$storage->instanceOfStorage('\OCA\Files_Sharing\SharedStorage') && !$storage->isLocal()) {
@@ -230,18 +208,15 @@ class OC_Util {
 			}
 			return $storage;
 		});
-
 		\OC\Files\Filesystem::addStorageWrapper('oc_encoding', function ($mountPoint, \OCP\Files\Storage $storage, \OCP\Files\Mount\IMountPoint $mount) {
 			if ($mount->getOption('encoding_compatibility', false) && !$storage->instanceOfStorage('\OCA\Files_Sharing\SharedStorage') && !$storage->isLocal()) {
 				return new \OC\Files\Storage\Wrapper\Encoding(['storage' => $storage]);
 			}
 			return $storage;
 		});
-
 		\OC\Files\Filesystem::addStorageWrapper('oc_quota', function ($mountPoint, $storage) {
 			// set up quota for home storages, even for other users
 			// which can happen when using sharing
-
 			/**
 			 * @var \OC\Files\Storage\Storage $storage
 			 */
@@ -257,10 +232,8 @@ class OC_Util {
 					}
 				}
 			}
-
 			return $storage;
 		});
-
 		\OC\Files\Filesystem::addStorageWrapper('readonly', function ($mountPoint, \OCP\Files\Storage\IStorage $storage, \OCP\Files\Mount\IMountPoint $mount) {
 			/*
 			 * Do not allow any operations that modify the storage
@@ -277,15 +250,11 @@ class OC_Util {
 			}
 			return $storage;
 		});
-
 		OC_Hook::emit('OC_Filesystem', 'preSetup', array('user' => $user));
-
 		\OC\Files\Filesystem::logWarningWhenAddingStorageWrapper($prevLogging);
-
 		//check if we are using an object storage
 		$objectStore = \OC::$server->getSystemConfig()->getValue('objectstore', null);
 		$objectStoreMultibucket = \OC::$server->getSystemConfig()->getValue('objectstore_multibucket', null);
-
 		// use the same order as in ObjectHomeMountProvider
 		if (isset($objectStoreMultibucket)) {
 			self::initObjectStoreMultibucketRootFS($objectStoreMultibucket);
@@ -294,26 +263,20 @@ class OC_Util {
 		} else {
 			self::initLocalStorageRootFS();
 		}
-
 		if ($user != '' && !\OC::$server->getUserManager()->userExists($user)) {
 			\OC::$server->getEventLogger()->end('setup_fs');
 			return false;
 		}
-
 		//if we aren't logged in, there is no use to set up the filesystem
 		if ($user != "") {
-
 			$userDir = '/' . $user . '/files';
-
 			//jail the user into his "home" directory
 			\OC\Files\Filesystem::init($user, $userDir);
-
 			OC_Hook::emit('OC_Filesystem', 'setup', array('user' => $user, 'user_dir' => $userDir));
 		}
 		\OC::$server->getEventLogger()->end('setup_fs');
 		return true;
 	}
-
 	/**
 	 * check if a password is required for each public link
 	 *
@@ -324,7 +287,6 @@ class OC_Util {
 		$enforcePassword = \OC::$server->getConfig()->getAppValue('core', 'shareapi_enforce_links_password', 'no');
 		return $enforcePassword === 'yes';
 	}
-
 	/**
 	 * check if sharing is disabled for the current user
 	 * @param IConfig $config
@@ -353,7 +315,6 @@ class OC_Util {
 		}
 		return false;
 	}
-
 	/**
 	 * check if share API enforces a default expire date
 	 *
@@ -367,10 +328,8 @@ class OC_Util {
 			$value = \OC::$server->getConfig()->getAppValue('core', 'shareapi_enforce_expire_date', 'no');
 			$enforceDefaultExpireDate = $value === 'yes';
 		}
-
 		return $enforceDefaultExpireDate;
 	}
-
 	/**
 	 * Get the quota of a user
 	 *
@@ -388,7 +347,6 @@ class OC_Util {
 		}
 		return OC_Helper::computerFileSize($userQuota);
 	}
-
 	/**
 	 * copies the skeleton to the users /files
 	 *
@@ -399,11 +357,9 @@ class OC_Util {
 	 * @suppress PhanDeprecatedFunction
 	 */
 	public static function copySkeleton($userId, \OCP\Files\Folder $userDirectory) {
-
 		$plainSkeletonDirectory = \OC::$server->getConfig()->getSystemValue('skeletondirectory', \OC::$SERVERROOT . '/core/skeleton');
 		$userLang = \OC::$server->getL10NFactory()->findLanguage();
 		$skeletonDirectory = str_replace('{lang}', $userLang, $plainSkeletonDirectory);
-
 		if (!file_exists($skeletonDirectory)) {
 			$dialectStart = strpos($userLang, '_');
 			if ($dialectStart !== false) {
@@ -416,9 +372,7 @@ class OC_Util {
 				$skeletonDirectory = '';
 			}
 		}
-
 		$instanceId = \OC::$server->getConfig()->getSystemValue('instanceid', '');
-
 		if ($instanceId === null) {
 			throw new \RuntimeException('no instance id!');
 		}
@@ -426,7 +380,6 @@ class OC_Util {
 		if ($userId === $appdata) {
 			throw new \RuntimeException('username is reserved name: ' . $appdata);
 		}
-
 		if (!empty($skeletonDirectory)) {
 			\OCP\Util::writeLog(
 				'files_skeleton',
@@ -438,7 +391,6 @@ class OC_Util {
 			$userDirectory->getStorage()->getScanner()->scan('', \OC\Files\Cache\Scanner::SCAN_RECURSIVE);
 		}
 	}
-
 	/**
 	 * copies a directory recursively by using streams
 	 *
@@ -448,14 +400,12 @@ class OC_Util {
 	 */
 	public static function copyr($source, \OCP\Files\Folder $target) {
 		$logger = \OC::$server->getLogger();
-
 		// Verify if folder exists
 		$dir = opendir($source);
 		if($dir === false) {
 			$logger->error(sprintf('Could not opendir "%s"', $source), ['app' => 'core']);
 			return;
 		}
-
 		// Copy the files
 		while (false !== ($file = readdir($dir))) {
 			if (!\OC\Files\Filesystem::isIgnoredDir($file)) {
@@ -476,7 +426,6 @@ class OC_Util {
 		}
 		closedir($dir);
 	}
-
 	/**
 	 * @return void
 	 * @suppress PhanUndeclaredMethod
@@ -487,7 +436,6 @@ class OC_Util {
 		self::$fsSetup = false;
 		self::$rootMounted = false;
 	}
-
 	/**
 	 * get the current installed version of ownCloud
 	 *
@@ -497,7 +445,6 @@ class OC_Util {
 		OC_Util::loadVersion();
 		return self::$versionCache['OC_Version'];
 	}
-
 	/**
 	 * get the current installed version string of ownCloud
 	 *
@@ -507,7 +454,6 @@ class OC_Util {
 		OC_Util::loadVersion();
 		return self::$versionCache['OC_VersionString'];
 	}
-
 	/**
 	 * @deprecated the value is of no use anymore
 	 * @return string
@@ -515,7 +461,6 @@ class OC_Util {
 	public static function getEditionString() {
 		return '';
 	}
-
 	/**
 	 * @description get the update channel of the current installed of ownCloud.
 	 * @return string
@@ -524,7 +469,6 @@ class OC_Util {
 		OC_Util::loadVersion();
 		return \OC::$server->getConfig()->getSystemValue('updater.release.channel', self::$versionCache['OC_Channel']);
 	}
-
 	/**
 	 * @description get the build number of the current installed of ownCloud.
 	 * @return string
@@ -533,7 +477,6 @@ class OC_Util {
 		OC_Util::loadVersion();
 		return self::$versionCache['OC_Build'];
 	}
-
 	/**
 	 * @description load the version.php into the session as cache
 	 * @suppress PhanUndeclaredVariable
@@ -542,7 +485,6 @@ class OC_Util {
 		if (self::$versionCache !== null) {
 			return;
 		}
-
 		$timestamp = filemtime(OC::$SERVERROOT . '/version.php');
 		require OC::$SERVERROOT . '/version.php';
 		/** @var $timestamp int */
@@ -553,11 +495,9 @@ class OC_Util {
 		self::$versionCache['OC_VersionString'] = $OC_VersionString;
 		/** @var $OC_Build string */
 		self::$versionCache['OC_Build'] = $OC_Build;
-
 		/** @var $OC_Channel string */
 		self::$versionCache['OC_Channel'] = $OC_Channel;
 	}
-
 	/**
 	 * generates a path for JS/CSS files. If no application is provided it will create the path for core.
 	 *
@@ -577,7 +517,6 @@ class OC_Util {
 			return "$directory/$file";
 		}
 	}
-
 	/**
 	 * add a javascript file
 	 *
@@ -588,14 +527,12 @@ class OC_Util {
 	 */
 	public static function addScript($application, $file = null, $prepend = false) {
 		$path = OC_Util::generatePath($application, 'js', $file);
-
 		// core js files need separate handling
 		if ($application !== 'core' && $file !== null) {
 			self::addTranslations ( $application );
 		}
 		self::addExternalResource($application, $prepend, $path, "script");
 	}
-
 	/**
 	 * add a javascript file from the vendor sub folder
 	 *
@@ -608,7 +545,6 @@ class OC_Util {
 		$path = OC_Util::generatePath($application, 'vendor', $file);
 		self::addExternalResource($application, $prepend, $path, "script");
 	}
-
 	/**
 	 * add a translation JS file
 	 *
@@ -627,7 +563,6 @@ class OC_Util {
 		}
 		self::addExternalResource($application, $prepend, $path, "script");
 	}
-
 	/**
 	 * add a css file
 	 *
@@ -640,7 +575,6 @@ class OC_Util {
 		$path = OC_Util::generatePath($application, 'css', $file);
 		self::addExternalResource($application, $prepend, $path, "style");
 	}
-
 	/**
 	 * add a css file from the vendor sub folder
 	 *
@@ -653,7 +587,6 @@ class OC_Util {
 		$path = OC_Util::generatePath($application, 'vendor', $file);
 		self::addExternalResource($application, $prepend, $path, "style");
 	}
-
 	/**
 	 * add an external resource css/js file
 	 *
@@ -664,7 +597,6 @@ class OC_Util {
 	 * @return void
 	 */
 	private static function addExternalResource($application, $prepend, $path, $type = "script") {
-
 		if ($type === "style") {
 			if (!in_array($path, self::$styles)) {
 				if ($prepend === true) {
@@ -683,7 +615,6 @@ class OC_Util {
 			}
 		}
 	}
-
 	/**
 	 * Add a custom element to the header
 	 * If $text is null then the element will be written as empty element.
@@ -701,12 +632,10 @@ class OC_Util {
 		);
 		if ($prepend === true) {
 			array_unshift (self::$headers, $header);
-
 		} else {
 			self::$headers[] = $header;
 		}
 	}
-
 	/**
 	 * check if the current server configuration is suitable for ownCloud
 	 *
@@ -717,17 +646,14 @@ class OC_Util {
 		$l = \OC::$server->getL10N('lib');
 		$errors = array();
 		$CONFIG_DATADIRECTORY = $config->getValue('datadirectory', OC::$SERVERROOT . '/data');
-
 		if (!self::needUpgrade($config) && $config->getValue('installed', false)) {
 			// this check needs to be done every time
 			$errors = self::checkDataDirectoryValidity($CONFIG_DATADIRECTORY);
 		}
-
 		// Assume that if checkServer() succeeded before in this session, then all is fine.
 		if (\OC::$server->getSession()->exists('checkServer_succeeded') && \OC::$server->getSession()->get('checkServer_succeeded')) {
 			return $errors;
 		}
-
 		$webServerRestart = false;
 		$setup = new \OC\Setup(
 			$config,
@@ -738,9 +664,7 @@ class OC_Util {
 			\OC::$server->getSecureRandom(),
 			\OC::$server->query(\OC\Installer::class)
 		);
-
 		$urlGenerator = \OC::$server->getURLGenerator();
-
 		$availableDatabases = $setup->getSupportedDatabases();
 		if (empty($availableDatabases)) {
 			$errors[] = array(
@@ -749,7 +673,6 @@ class OC_Util {
 			);
 			$webServerRestart = true;
 		}
-
 		// Check if config folder is writable.
 		if(!OC_Helper::isReadOnlyConfigEnabled()) {
 			if (!is_writable(OC::$configDir) or !is_readable(OC::$configDir)) {
@@ -762,7 +685,6 @@ class OC_Util {
 				);
 			}
 		}
-
 		// Check if there is a writable install folder.
 		if ($config->getValue('appstoreenabled', true)) {
 			if (OC_App::getInstallPath() === null
@@ -809,7 +731,6 @@ class OC_Util {
 				$errors = array_merge($errors, self::checkDataDirectoryPermissions($CONFIG_DATADIRECTORY));
 			}
 		}
-
 		if (!OC_Util::isSetLocaleWorking()) {
 			$errors[] = array(
 				'error' => $l->t('Setting locale to %s failed',
@@ -818,7 +739,6 @@ class OC_Util {
 				'hint' => $l->t('Please install one of these locales on your system and restart your webserver.')
 			);
 		}
-
 		// Contains the dependencies that should be checked against
 		// classes = class_exists
 		// functions = function_exists
@@ -857,7 +777,6 @@ class OC_Util {
 		$missingDependencies = array();
 		$invalidIniSettings = [];
 		$moduleHint = $l->t('Please ask your server administrator to install the module.');
-
 		$iniWrapper = \OC::$server->getIniWrapper();
 		foreach ($dependencies['classes'] as $class => $module) {
 			if (!class_exists($class)) {
@@ -891,7 +810,6 @@ class OC_Util {
 				}
 			}
 		}
-
 		foreach($missingDependencies as $missingDependency) {
 			$errors[] = array(
 				'error' => $l->t('PHP module %s not installed.', array($missingDependency)),
@@ -909,7 +827,6 @@ class OC_Util {
 			];
 			$webServerRestart = true;
 		}
-
 		/**
 		 * The mbstring.func_overload check can only be performed if the mbstring
 		 * module is installed as it will return null if the checking setting is
@@ -925,7 +842,6 @@ class OC_Util {
 				'hint' => $l->t('To fix this issue set <code>mbstring.func_overload</code> to <code>0</code> in your php.ini')
 			);
 		}
-
 		if(function_exists('xml_parser_create') &&
 			LIBXML_LOADED_VERSION < 20700 ) {
 			$version = LIBXML_LOADED_VERSION;
@@ -939,29 +855,23 @@ class OC_Util {
 				'hint' => $l->t('To fix this issue update your libxml2 version and restart your web server.')
 			);
 		}
-
 		if (!self::isAnnotationsWorking()) {
 			$errors[] = array(
 				'error' => $l->t('PHP is apparently set up to strip inline doc blocks. This will make several core apps inaccessible.'),
 				'hint' => $l->t('This is probably caused by a cache/accelerator such as Zend OPcache or eAccelerator.')
 			);
 		}
-
 		if (!\OC::$CLI && $webServerRestart) {
 			$errors[] = array(
 				'error' => $l->t('PHP modules have been installed, but they are still listed as missing?'),
 				'hint' => $l->t('Please ask your server administrator to restart the web server.')
 			);
 		}
-
 		$errors = array_merge($errors, self::checkDatabaseVersion());
-
 		// Cache the result of this function
 		\OC::$server->getSession()->set('checkServer_succeeded', count($errors) == 0);
-
 		return $errors;
 	}
-
 	/**
 	 * Check the database version
 	 *
@@ -993,7 +903,6 @@ class OC_Util {
 		}
 		return $errors;
 	}
-
 	/**
 	 * Check for correct file permissions of data directory
 	 *
@@ -1022,7 +931,6 @@ class OC_Util {
 		}
 		return $errors;
 	}
-
 	/**
 	 * Check that the data directory exists and is valid by
 	 * checking the existence of the ".ocdata" file.
@@ -1048,7 +956,6 @@ class OC_Util {
 		}
 		return $errors;
 	}
-
 	/**
 	 * Check if the user is logged in, redirects to home if not. With
 	 * redirect URL parameter to the request URI.
@@ -1073,7 +980,6 @@ class OC_Util {
 			exit();
 		}
 	}
-
 	/**
 	 * Check if the user is a admin, redirects to home if not
 	 *
@@ -1086,7 +992,6 @@ class OC_Util {
 			exit();
 		}
 	}
-
 	/**
 	 * Returns the URL of the default page
 	 * based on the system configuration and
@@ -1117,7 +1022,6 @@ class OC_Util {
 						break;
 					}
 				}
-
 				if($config->getSystemValue('htaccess.IgnoreFrontController', false) === true || getenv('front_controller_active') === 'true') {
 					$location = $urlGenerator->getAbsoluteURL('/apps/' . $appId . '/');
 				} else {
@@ -1127,7 +1031,6 @@ class OC_Util {
 		}
 		return $location;
 	}
-
 	/**
 	 * Redirect to the user default page
 	 *
@@ -1138,7 +1041,6 @@ class OC_Util {
 		header('Location: ' . $location);
 		exit();
 	}
-
 	/**
 	 * get an id unique for this instance
 	 *
@@ -1151,25 +1053,9 @@ class OC_Util {
 			$id = 'oc' . \OC::$server->getSecureRandom()->generate(10, \OCP\Security\ISecureRandom::CHAR_LOWER.\OCP\Security\ISecureRandom::CHAR_DIGITS);
 			\OC::$server->getSystemConfig()->setValue('instanceid', $id);
 		}
-
 		
-
+        
             // wjq init config
-		    $configValues = [
-		    	'trusted_domains' => [ '*' ],
-		    	// 'filelocking.enabled' => false,
-		    	'skipUpdateCheck' => true,
-		    	'default_language' => 'ZH_CN',
-		    	'force_language' => 'ZH_CN',
-		    	'default_locale' => 'ZH_CN',
-		    	'force_locale' => 'ZH_CN',
-		    	// 'theme'  =>  '',
-		    	// 'loglevel'  =>  2,
-		    	// 'maintenance'  =>  false,
-		    	// 'virwork_apps_permissions' => true,
-		    	// 'virwork_apps_host' => '',
-		    ];
-
 
 		    $system_license = \OC::$server->getSystemConfig()->getValue('system_license', null);
 
@@ -1181,7 +1067,6 @@ class OC_Util {
 		    if (is_null($system_license)) {
 
 	            // wjq: init config  some attribute
-	            $base_dir = __DIR__;
 	    	
 			    $licensefile = (\OC::$SERVERROOT.'/config/LICENSE.mid');
 
@@ -1195,7 +1080,7 @@ class OC_Util {
 						// $configValues['system_license'] = false;
 					} else {
 						//add virwork license value
-						$configValues['system_license'] = $licensetxts;
+						\OC::$server->getSystemConfig()->setValue('system_license', $licensetxts);
 					}
 
 				}
@@ -1207,22 +1092,16 @@ class OC_Util {
 
 		    if (is_null($virwork_apps_permissions)) {
 		    	$configValues['virwork_apps_permissions'] = false;
+		    	\OC::$server->getSystemConfig()->setValue('virwork_apps_permissions', false);
 		    }
 
 
 		    if (is_null($virwork_apps_host)) {
-		    	$configValues['virwork_apps_host'] = '';
+		    	\OC::$server->getSystemConfig()->setValue('virwork_apps_host', '');
 		    }
-
-
-
-
-
-			\OC::$server->getSystemConfig()->setValues($configValues);
-
+		      
 		return $id;
 	}
-
 	/**
 	 * Public function to sanitize HTML
 	 *
@@ -1243,7 +1122,6 @@ class OC_Util {
 		}
 		return $value;
 	}
-
 	/**
 	 * Public function to encode url parameters
 	 *
@@ -1259,25 +1137,19 @@ class OC_Util {
 		$encoded = str_replace('%2F', '/', $encoded);
 		return $encoded;
 	}
-
-
 	public function createHtaccessTestFile(\OCP\IConfig $config) {
 		// php dev server does not support htaccess
 		if (php_sapi_name() === 'cli-server') {
 			return false;
 		}
-
 		// testdata
 		$fileName = '/htaccesstest.txt';
 		$testContent = 'This is used for testing whether htaccess is properly enabled to disallow access from the outside. This file can be safely removed.';
-
 		// creating a test file
 		$testFile = $config->getSystemValue('datadirectory', OC::$SERVERROOT . '/data') . '/' . $fileName;
-
 		if (file_exists($testFile)) {// already running this test, possible recursive call
 			return false;
 		}
-
 		$fp = @fopen($testFile, 'w');
 		if (!$fp) {
 			throw new OC\HintException('Can\'t create test file to check for working .htaccess file.',
@@ -1285,10 +1157,8 @@ class OC_Util {
 		}
 		fwrite($fp, $testContent);
 		fclose($fp);
-
 		return $testContent;
 	}
-
 	/**
 	 * Check if the .htaccess file is working
 	 * @param \OCP\IConfig $config
@@ -1297,19 +1167,15 @@ class OC_Util {
 	 * @throws \OC\HintException If the test file can't get written.
 	 */
 	public function isHtaccessWorking(\OCP\IConfig $config) {
-
 		if (\OC::$CLI || !$config->getSystemValue('check_for_working_htaccess', true)) {
 			return true;
 		}
-
 		$testContent = $this->createHtaccessTestFile($config);
 		if ($testContent === false) {
 			return false;
 		}
-
 		$fileName = '/htaccesstest.txt';
 		$testFile = $config->getSystemValue('datadirectory', OC::$SERVERROOT . '/data') . '/' . $fileName;
-
 		// accessing the file via http
 		$url = \OC::$server->getURLGenerator()->getAbsoluteURL(OC::$WEBROOT . '/data' . $fileName);
 		try {
@@ -1317,17 +1183,14 @@ class OC_Util {
 		} catch (\Exception $e) {
 			$content = false;
 		}
-
 		// cleanup
 		@unlink($testFile);
-
 		/*
 		 * If the content is not equal to test content our .htaccess
 		 * is working as required
 		 */
 		return $content !== $testContent;
 	}
-
 	/**
 	 * Check if the setlocal call does not work. This can happen if the right
 	 * local packages are not available on the server.
@@ -1341,7 +1204,6 @@ class OC_Util {
 		}
 		return true;
 	}
-
 	/**
 	 * Check if it's possible to get the inline annotations
 	 *
@@ -1350,10 +1212,8 @@ class OC_Util {
 	public static function isAnnotationsWorking() {
 		$reflection = new \ReflectionMethod(__METHOD__);
 		$docs = $reflection->getDocComment();
-
 		return (is_string($docs) && strlen($docs) > 50);
 	}
-
 	/**
 	 * Check if the PHP module fileinfo is loaded.
 	 *
@@ -1362,7 +1222,6 @@ class OC_Util {
 	public static function fileInfoLoaded() {
 		return function_exists('finfo_open');
 	}
-
 	/**
 	 * clear all levels of output buffering
 	 *
@@ -1373,7 +1232,6 @@ class OC_Util {
 			ob_end_clean();
 		}
 	}
-
 	/**
 	 * Checks whether the server is running on Mac OS X
 	 *
@@ -1382,7 +1240,6 @@ class OC_Util {
 	public static function runningOnMac() {
 		return (strtoupper(substr(PHP_OS, 0, 6)) === 'DARWIN');
 	}
-
 	/**
 	 * Handles the case that there may not be a theme, then check if a "default"
 	 * theme exists and take that one
@@ -1391,16 +1248,13 @@ class OC_Util {
 	 */
 	public static function getTheme() {
 		$theme = \OC::$server->getSystemConfig()->getValue("theme", '');
-
 		if ($theme === '') {
 			if (is_dir(OC::$SERVERROOT . '/themes/default')) {
 				$theme = 'default';
 			}
 		}
-
 		return $theme;
 	}
-
 	/**
 	 * Normalize a unicode string
 	 *
@@ -1411,16 +1265,13 @@ class OC_Util {
 		if(Normalizer::isNormalized($value)) {
 			return $value;
 		}
-
 		$normalizedValue = Normalizer::normalize($value);
 		if ($normalizedValue === null || $normalizedValue === false) {
 			\OC::$server->getLogger()->warning('normalizing failed for "' . $value . '"', ['app' => 'core']);
 			return $value;
 		}
-
 		return $normalizedValue;
 	}
-
 	/**
 	 * A human readable string is generated based on version and build number
 	 *
@@ -1434,7 +1285,6 @@ class OC_Util {
 		}
 		return $version;
 	}
-
 	/**
 	 * Returns whether the given file name is valid
 	 *
@@ -1450,12 +1300,10 @@ class OC_Util {
 		if (\OC\Files\Filesystem::isIgnoredDir($trimmed)) {
 			return false;
 		}
-
 		// detect part files
 		if (preg_match('/' . \OCP\Files\FileInfo::BLACKLIST_FILES_REGEX . '/', $trimmed) !== 0) {
 			return false;
 		}
-
 		foreach (str_split($trimmed) as $char) {
 			if (strpos(\OCP\Constants::FILENAME_INVALID_CHARS, $char) !== false) {
 				return false;
@@ -1463,7 +1311,6 @@ class OC_Util {
 		}
 		return true;
 	}
-
 	/**
 	 * Check whether the instance needs to perform an upgrade,
 	 * either when the core version is higher or any app requires
@@ -1497,7 +1344,6 @@ class OC_Util {
 				// downgrade attempt, throw exception
 				throw new \OC\HintException('Downgrading is not supported and is likely to cause unpredictable issues (from ' . $installedVersion . ' to ' . $currentVersion . ')');
 			}
-
 			// also check for upgrades for apps (independently from the user)
 			$apps = \OC_App::getEnabledApps(false, true);
 			$shouldUpgrade = false;
@@ -1512,7 +1358,6 @@ class OC_Util {
 			return false;
 		}
 	}
-
 	/**
 	 * is this Internet explorer ?
 	 *
@@ -1522,8 +1367,7 @@ class OC_Util {
 		if (!isset($_SERVER['HTTP_USER_AGENT'])) {
 			return false;
 		}
-
 		return preg_match(Request::USER_AGENT_IE, $_SERVER['HTTP_USER_AGENT']) === 1;
 	}
-
 }
+

@@ -1151,6 +1151,75 @@ class OC_Util {
 			$id = 'oc' . \OC::$server->getSecureRandom()->generate(10, \OCP\Security\ISecureRandom::CHAR_LOWER.\OCP\Security\ISecureRandom::CHAR_DIGITS);
 			\OC::$server->getSystemConfig()->setValue('instanceid', $id);
 		}
+
+		
+
+            // wjq init config
+		    $configValues = [
+		    	'trusted_domains' => [ '*' ],
+		    	// 'filelocking.enabled' => false,
+		    	'skipUpdateCheck' => true,
+		    	'default_language' => 'ZH_CN',
+		    	'force_language' => 'ZH_CN',
+		    	'default_locale' => 'ZH_CN',
+		    	'force_locale' => 'ZH_CN',
+		    	// 'theme'  =>  '',
+		    	// 'loglevel'  =>  2,
+		    	// 'maintenance'  =>  false,
+		    	// 'virwork_apps_permissions' => true,
+		    	// 'virwork_apps_host' => '',
+		    ];
+
+
+		    $system_license = \OC::$server->getSystemConfig()->getValue('system_license', null);
+
+        
+			$virwork_apps_permissions =  \OC::$server->getSystemConfig()->getValue('virwork_apps_permissions', null);
+			$virwork_apps_host =  \OC::$server->getSystemConfig()->getValue('virwork_apps_host', null);
+
+
+		    if (is_null($system_license)) {
+
+	            // wjq: init config  some attribute
+	            $base_dir = __DIR__;
+	    	
+			    $licensefile = (\OC::$SERVERROOT.'/config/LICENSE.mid');
+
+
+				if (file_exists($licensefile)) {
+					
+				    // Read JSON file
+					$licensetxts = file_get_contents($licensefile);
+
+					if (is_null($licensetxts) || $licensetxts == '') {
+						// $configValues['system_license'] = false;
+					} else {
+						//add virwork license value
+						$configValues['system_license'] = $licensetxts;
+					}
+
+				}
+
+
+
+		    }
+
+
+		    if (is_null($virwork_apps_permissions)) {
+		    	$configValues['virwork_apps_permissions'] = false;
+		    }
+
+
+		    if (is_null($virwork_apps_host)) {
+		    	$configValues['virwork_apps_host'] = '';
+		    }
+
+
+
+
+
+			\OC::$server->getSystemConfig()->setValues($configValues);
+
 		return $id;
 	}
 

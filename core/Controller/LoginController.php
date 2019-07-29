@@ -185,7 +185,16 @@ class LoginController extends Controller {
 		}
 
 		if (!empty($redirect_url)) {
-			$parameters['redirect_url'] = $redirect_url;
+			
+			// add by wjq: logout->login->logout
+			$pos = strrpos($redirect_url, "index.php/logout");
+			if ($pos === false) { 
+			    $parameters['redirect_url'] = $redirect_url;
+			} else {
+				$parameters['redirect_url'] = "/index.php/apps/files/";
+			}
+
+			
 		}
 
 		$parameters = $this->setPasswordResetParameters($user, $parameters);

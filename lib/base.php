@@ -401,7 +401,8 @@ class OC {
 
 	public static function initSession() {
 		if(self::$server->getRequest()->getServerProtocol() === 'https') {
-			ini_set('session.cookie_secure', true);
+			// add by wjq: fuck nextcloud dev, hide -->  ini_set('session.cookie_secure', true);  http <-ok-> https
+			//ini_set('session.cookie_secure', true);
 		}
 
 		// prevents javascript from accessing php session cookies

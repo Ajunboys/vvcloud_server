@@ -355,10 +355,9 @@ class Setup {
 		}
 
 
-	    $licensefile = (\OC::$SERVERROOT.'/config/LICENSE.mid');
-
-
-		if ($this->config->getValue('system_license', null) === null) {
+	    
+        // add by wjq: check system license and update license
+        if ($this->config->getValue('system_license', null) === null) {
 
             $licensefile = (\OC::$SERVERROOT.'/config/LICENSE.mid');
 
@@ -378,6 +377,8 @@ class Setup {
 			}
 	    
         }
+        /***update license end**/
+        
 
 		$this->config->setValues($newConfigValues);
 
